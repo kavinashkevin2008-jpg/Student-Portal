@@ -1,0 +1,44 @@
+services:
+  # Express Backend Web Service
+  - type: web
+    name: smart-student-portal-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_DIALECT
+        value: postgres
+      - key: DB_HOST
+        fromDatabase:
+          name: smart-portal-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: smart-portal-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: smart-portal-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: smart-portal-db
+          property: password
+      - key: DB_PORT
+        fromDatabase:
+          name: smart-portal-db
+          property: port
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 24h
+
+databases:
+  # Managed PostgreSQL Database Instance
+  - name: smart-portal-db
+    plan: free
