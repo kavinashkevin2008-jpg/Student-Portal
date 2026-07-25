@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function myStudentId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentId;
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if isAdmin();
+    }
+
+    match /students/{studentId} {
+      allow read: if isAdmin() || (isSignedIn() && myStudentId() == studentId);
+      allow write: if isAdmin();
+    }
+
+    match /attendance/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.studentId == myStudentId());
+      allow write: if isAdmin();
+    }
+
+    match /marks/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.studentId == myStudentId());
+      allow write: if isAdmin();
+    }
+
+    match /fees/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.studentId == myStudentId());
+      allow write: if isAdmin();
+    }
+
+    match /notices/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /leaveRequests/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.studentId == myStudentId());
+      allow create: if isSignedIn() && request.resource.data.studentId == myStudentId();
+      allow update: if isAdmin();
+    }
+  }
+}
